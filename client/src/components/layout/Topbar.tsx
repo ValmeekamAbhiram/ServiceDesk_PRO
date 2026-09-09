@@ -144,7 +144,7 @@ export function Topbar({ realtime }: { realtime: RealtimeStatus }) {
         <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="truncate">Search tickets, assets, knowledge…</span>
         <span className="ml-auto hidden items-center gap-1 sm:flex" aria-hidden="true">
-          <kbd className="kbd">Ctrl</kbd>
+          <kbd className="kbd">⌘</kbd>
           <kbd className="kbd">K</kbd>
         </span>
       </button>

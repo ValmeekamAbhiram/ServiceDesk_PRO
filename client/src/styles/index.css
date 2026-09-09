@@ -23,8 +23,8 @@
 [data-theme='light'] {
   color-scheme: light;
 
-  /* surfaces */
-  --c-canvas: 246 247 251;
+  /* surfaces — warm paper canvas */
+  --c-canvas: 245 246 244;
   --c-surface: 255 255 255;
   --c-surface-raised: 255 255 255;
   --c-surface-sunken: 241 243 249;
@@ -40,17 +40,17 @@
 
   --c-shadow: 15 23 42;
 
-  /* brand — indigo */
-  --c-brand-50: 238 242 255;
-  --c-brand-100: 224 231 255;
-  --c-brand-200: 199 210 254;
-  --c-brand-300: 165 180 252;
-  --c-brand-400: 129 140 248;
-  --c-brand-500: 99 102 241;
-  --c-brand-600: 79 70 229;
-  --c-brand-700: 67 56 202;
-  --c-brand-800: 55 48 163;
-  --c-brand-900: 49 46 129;
+  /* brand — deep green */
+  --c-brand-50: 240 248 243;
+  --c-brand-100: 220 240 229;
+  --c-brand-200: 185 222 199;
+  --c-brand-300: 140 198 162;
+  --c-brand-400: 80 170 118;
+  --c-brand-500: 45 140 90;
+  --c-brand-600: 27 94 59;
+  --c-brand-700: 22 78 50;
+  --c-brand-800: 20 64 42;
+  --c-brand-900: 17 52 35;
 
   /* semantics */
   --c-success-fg: 4 120 87;
@@ -106,16 +106,16 @@
      tints suitable for backgrounds, high steps become bright text colours, so
      a component written as `bg-brand-50 text-brand-700` reads correctly in
      both themes without a single `dark:` override. */
-  --c-brand-50: 30 32 68;
-  --c-brand-100: 40 43 92;
-  --c-brand-200: 55 55 132;
-  --c-brand-300: 79 70 190;
-  --c-brand-400: 110 118 240;
-  --c-brand-500: 129 140 248;
-  --c-brand-600: 139 148 252;
-  --c-brand-700: 165 180 252;
-  --c-brand-800: 199 210 254;
-  --c-brand-900: 224 231 255;
+  --c-brand-50: 12 34 24;
+  --c-brand-100: 17 52 35;
+  --c-brand-200: 20 64 42;
+  --c-brand-300: 80 170 118;
+  --c-brand-400: 110 195 145;
+  --c-brand-500: 45 140 90;
+  --c-brand-600: 80 170 118;
+  --c-brand-700: 140 198 162;
+  --c-brand-800: 185 222 199;
+  --c-brand-900: 220 240 229;
 
   --c-success-fg: 110 231 183;
   --c-success-bg: 6 47 40;

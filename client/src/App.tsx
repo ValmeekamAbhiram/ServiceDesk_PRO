@@ -20,6 +20,7 @@ import { AnonymousRoute, ProtectedRoute, RequirePermission } from '@/routes/Prot
 
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
+const Landing = lazy(() => import('@/pages/Landing'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const TicketList = lazy(() => import('@/pages/TicketList'));
 const TicketNew = lazy(() => import('@/pages/TicketNew'));
@@ -68,6 +69,17 @@ export function App() {
             <AnonymousRoute>
               <Suspense fallback={<PageLoading />}>
                 <Register />
+              </Suspense>
+            </AnonymousRoute>
+          }
+        />
+
+        <Route
+          path="/welcome"
+          element={
+            <AnonymousRoute>
+              <Suspense fallback={<PageLoading />}>
+                <Landing />
               </Suspense>
             </AnonymousRoute>
           }

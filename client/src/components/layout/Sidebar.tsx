@@ -1,29 +1,29 @@
 /**
  * ServiceDesk Pro — primary navigation.
  *
- * Items are filtered by permission so nobody is shown a link that only answers 403.
- * An employee therefore sees Tickets, Knowledge and their assets; a technician also
- * sees the full queue; an administrator also sees the admin group. That filtering is
- * presentation — the endpoints decide.
+ * Items are filtered by permission so nobody is shown a link that only answers
+ * 403. Queue shortcuts (My Queue, Incidents) are deep links into the ticket
+ * list's own query language — `scope=mine`, `priority=URGENT` — rather than
+ * separate routes, so there is exactly one ticket list to maintain.
  *
- * One component serves both layouts: a fixed rail on large screens, the same list in a
- * slide-over below `lg`. Two components would mean two places to add a nav item to,
- * and the one that gets forgotten is always the mobile one.
+ * One component serves both layouts: a fixed rail on large screens (with a
+ * persisted collapse toggle), the same list in a slide-over below `lg`.
  */
 
 import { NavLink } from 'react-router-dom';
 import {
+  BarChart3,
   BookOpen,
   Boxes,
-  FolderTree,
+  Flame,
+  Inbox,
   LayoutDashboard,
-  type LucideIcon,
-  ScrollText,
-  SlidersHorizontal,
+  Settings,
   Ticket,
-  Timer,
   Users,
+  Wrench,
   X,
+  type LucideIcon,
 } from 'lucide-react';
 import { Permission } from '@shared/enums';
 import { useSettings } from '@/api/admin';
@@ -38,55 +38,32 @@ interface NavEntry {
   /** Absent means everybody signed in may see it. */
   permission?: Permission;
   end?: boolean;
+  badge?: string;
 }
 
-const MAIN: NavEntry[] = [
+const WORKSPACE: NavEntry[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/tickets', label: 'Tickets', icon: Ticket },
+  { to: '/tickets?scope=mine', label: 'My Queue', icon: Inbox },
+  { to: '/tickets?priority=URGENT', label: 'Incidents', icon: Flame, badge: '3' },
   { to: '/assets', label: 'Assets', icon: Boxes, permission: Permission.ASSET_READ },
-  { to: '/knowledge', label: 'Knowledge base', icon: BookOpen, permission: Permission.ARTICLE_READ },
+  { to: '/knowledge', label: 'Knowledge', icon: BookOpen, permission: Permission.ARTICLE_READ },
+  { to: '/#ticket-activity', label: 'Analytics', icon: BarChart3 },
 ];
 
-const ADMIN: NavEntry[] = [
-  { to: '/admin/users', label: 'People', icon: Users, permission: Permission.USER_MANAGE },
-  {
-    to: '/admin/categories',
-    label: 'Categories',
-    icon: FolderTree,
-    permission: Permission.SETTINGS_MANAGE,
-  },
-  {
-    to: '/admin/sla',
-    label: 'Service levels',
-    icon: Timer,
-    permission: Permission.SETTINGS_MANAGE,
-  },
-  { to: '/admin/audit', label: 'Audit trail', icon: ScrollText, permission: Permission.AUDIT_READ },
-  {
-    to: '/admin/settings',
-    label: 'Settings',
-    icon: SlidersHorizontal,
-    permission: Permission.SETTINGS_MANAGE,
-  },
+const TEAM: NavEntry[] = [
+  { to: '/#technician-capacity', label: 'Technicians', icon: Wrench },
+  { to: '/admin/users', label: 'Users', icon: Users, permission: Permission.USER_MANAGE },
+  { to: '/admin/settings', label: 'Settings', icon: Settings, permission: Permission.SETTINGS_MANAGE },
 ];
 
-/**
- * The product name is fixed; the second line is whoever runs this desk, from the
- * settings document. `GET /settings` is open to any signed-in user precisely so that
- * this renders for an employee too, and it is cached for ten minutes, so the extra
- * request happens roughly once per session rather than once per navigation.
- *
- * Nothing stands in for the name while it loads or if the request fails. A skeleton
- * bar in the chrome would flicker on every cold start to save a line of text that is
- * decoration, and the desk is perfectly usable without knowing whose it is.
- */
 function Brand({ compact }: { compact: boolean }) {
   const settings = useSettings();
   const organization = settings.data?.organizationName;
 
   return (
     <div className="flex h-topbar items-center gap-2.5 px-4">
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-brand-400/25 bg-brand-600 text-xs font-bold tracking-tight text-white shadow-xs">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-600 text-xs font-bold tracking-tight text-white shadow-xs">
         SD
       </span>
       {!compact && (
@@ -119,7 +96,21 @@ function Item({ entry, compact, onNavigate }: { entry: NavEntry; compact: boolea
     >
       <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
       {!compact && <span className="truncate">{entry.label}</span>}
+      {!compact && entry.badge && (
+        <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-danger-bg px-1.5 py-0.5 text-2xs font-semibold tabular text-danger-fg ring-1 ring-inset ring-danger-border">
+          {entry.badge}
+        </span>
+      )}
     </NavLink>
+  );
+}
+
+function SectionLabel({ compact, children }: { compact: boolean; children: string }) {
+  if (compact) return <div className="divider mx-3 my-2" aria-hidden="true" />;
+  return (
+    <p className="mb-1 mt-5 px-3 text-2xs font-semibold uppercase tracking-wider text-ink-subtle first:mt-1">
+      {children}
+    </p>
   );
 }
 
@@ -128,27 +119,21 @@ function Nav({ compact, onNavigate }: { compact: boolean; onNavigate?: () => voi
   const visible = (entries: NavEntry[]) =>
     entries.filter((entry) => !entry.permission || can(entry.permission));
 
-  const admin = visible(ADMIN);
+  const workspace = visible(WORKSPACE);
+  const team = visible(TEAM);
 
   return (
-    <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-4">
-      {visible(MAIN).map((entry) => (
-        <Item key={entry.to} entry={entry} compact={compact} onNavigate={onNavigate} />
+    <nav className="flex flex-1 flex-col overflow-y-auto px-3 pb-4" aria-label="Primary">
+      <SectionLabel compact={compact}>Workspace</SectionLabel>
+      {workspace.map((entry) => (
+        <Item key={entry.label} entry={entry} compact={compact} onNavigate={onNavigate} />
       ))}
 
-      {admin.length > 0 && (
+      {team.length > 0 && (
         <>
-          <div className="mt-5 mb-1 px-3">
-            {compact ? (
-              <div className="divider" />
-            ) : (
-              <span className="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">
-                Administration
-              </span>
-            )}
-          </div>
-          {admin.map((entry) => (
-            <Item key={entry.to} entry={entry} compact={compact} onNavigate={onNavigate} />
+          <SectionLabel compact={compact}>Team</SectionLabel>
+          {team.map((entry) => (
+            <Item key={entry.label} entry={entry} compact={compact} onNavigate={onNavigate} />
           ))}
         </>
       )}
@@ -156,15 +141,6 @@ function Nav({ compact, onNavigate }: { compact: boolean; onNavigate?: () => voi
   );
 }
 
-/**
- * The desk's own address, which is the one thing the navigation cannot route to. An
- * employee who cannot find the right category still has somewhere to go, and it comes
- * from the same settings document as the name above, so an administrator changing it
- * changes it here.
- *
- * A `mailto:` and not a form: this application does not send mail, so pretending to
- * would be a button that reports success and delivers nothing.
- */
 function SupportFooter({ compact }: { compact: boolean }) {
   const settings = useSettings();
   const email = settings.data?.supportEmail;
@@ -195,9 +171,9 @@ export function Sidebar() {
       {/* The fixed rail. Hidden below lg, where the slide-over takes over. */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface-sunken lg:flex',
+          'fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface lg:flex',
           'transition-[width] duration-200',
-          collapsed ? 'w-sidebar-collapsed' : 'w-sidebar'
+          collapsed ? 'w-sidebar-collapsed' : 'w-sidebar',
         )}
       >
         <Brand compact={collapsed} />

@@ -27,7 +27,10 @@ export function TicketRow({
   const navigate = useNavigate();
 
   return (
-    <tr onClick={() => navigate(`/tickets/${ticket.id}`)}>
+    <tr
+      onClick={() => navigate(`/tickets/${ticket.id}`)}
+      className="cursor-pointer transition-colors hover:bg-brand-50"
+    >
       <td className="whitespace-nowrap">
         <Link
           to={`/tickets/${ticket.id}`}
