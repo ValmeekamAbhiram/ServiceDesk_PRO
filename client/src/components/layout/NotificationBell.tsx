@@ -21,7 +21,7 @@ import { useNow } from '@/hooks/useNow';
 
 const QUERY = { page: 1, limit: 8, unreadOnly: false } as const;
 
-export function NotificationBell() {
+export function NotificationBell({ circle = false }: { circle?: boolean }) {
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const now = useNow();
@@ -55,7 +55,11 @@ export function NotificationBell() {
     <div className="relative" ref={wrapper}>
       <button
         type="button"
-        className="btn btn-ghost btn-icon relative"
+        className={
+          circle
+            ? 'relative grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-ink-muted transition-colors hover:border-line-strong hover:text-ink'
+            : 'btn btn-ghost btn-icon relative'
+        }
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}

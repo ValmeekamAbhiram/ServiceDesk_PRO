@@ -34,7 +34,9 @@ function PageFallback() {
 export function AppShell() {
   const authenticated = useAuthStore((state) => state.status === 'authenticated');
   const collapsed = useUiStore((state) => state.sidebarCollapsed);
-  const realtime = useRealtime(authenticated);
+  // Opened here and nowhere else: this component mounts exactly once per
+  // signed-in session, which keeps `useRealtime` a single connection.
+  useRealtime(authenticated);
   useKeyboardShortcuts();
 
   return (
@@ -49,7 +51,7 @@ export function AppShell() {
           collapsed ? 'lg:pl-sidebar-collapsed' : 'lg:pl-sidebar'
         )}
       >
-        <Topbar realtime={realtime} />
+        <Topbar />
         <main className="mx-auto w-full max-w-[100rem] flex-1 px-3 py-5 sm:px-5 sm:py-6 lg:px-7">
           <Suspense fallback={<PageFallback />}>
             <Outlet />
