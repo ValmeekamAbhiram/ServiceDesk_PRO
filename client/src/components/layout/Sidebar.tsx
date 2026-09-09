@@ -11,7 +11,7 @@
  * a persisted collapse toggle), the same list in a slide-over below `lg`.
  */
 
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   BookOpen,
@@ -33,29 +33,61 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useUiStore } from '@/stores/ui.store';
 
 interface NavEntry {
+  /** Stable key used by the explicit active matcher below — never the label. */
+  id: 'dashboard' | 'tickets' | 'queue' | 'incidents' | 'assets' | 'knowledge' | 'analytics' | 'settings';
   to: string;
   label: string;
   icon: LucideIcon;
   /** Absent means everybody signed in may see it. */
   permission?: Permission;
-  end?: boolean;
   badge?: string;
+  /** Hash anchors (Analytics) render as plain anchors and never take the pill. */
+  hash?: boolean;
 }
 
 const MENU: NavEntry[] = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/tickets', label: 'Tickets', icon: Ticket, badge: '128' },
-  { to: '/tickets?scope=mine', label: 'My Queue', icon: Inbox },
-  { to: '/tickets?priority=URGENT', label: 'Incidents', icon: Flame },
-  { to: '/assets', label: 'Assets', icon: Boxes, permission: Permission.ASSET_READ },
-  { to: '/knowledge', label: 'Knowledge', icon: BookOpen, permission: Permission.ARTICLE_READ },
-  { to: '/#ticket-analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'dashboard', to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'tickets', to: '/tickets', label: 'Tickets', icon: Ticket, badge: '128' },
+  { id: 'queue', to: '/tickets?scope=mine', label: 'My Queue', icon: Inbox },
+  { id: 'incidents', to: '/tickets?priority=URGENT', label: 'Incidents', icon: Flame },
+  { id: 'assets', to: '/assets', label: 'Assets', icon: Boxes, permission: Permission.ASSET_READ },
+  { id: 'knowledge', to: '/knowledge', label: 'Knowledge', icon: BookOpen, permission: Permission.ARTICLE_READ },
+  { id: 'analytics', to: '/#ticket-analytics', label: 'Analytics', icon: BarChart3, hash: true },
 ];
 
 const GENERAL: NavEntry[] = [
-  { to: '/admin/settings', label: 'Settings', icon: Settings, permission: Permission.SETTINGS_MANAGE },
-  { to: '/knowledge', label: 'Help', icon: LifeBuoy, permission: Permission.ARTICLE_READ },
+  { id: 'settings', to: '/admin/settings', label: 'Settings', icon: Settings, permission: Permission.SETTINGS_MANAGE },
 ];
+
+/**
+ * Exactly one pill lit at a time.
+ *
+ * `NavLink`'s prefix matching cannot express this menu: `/tickets` is a
+ * prefix of the queue/incident deep links, `/#ticket-analytics` is a prefix
+ * of every route, and Help used to share Knowledge's target — so two or three
+ * pills lit up together. Each entry therefore declares its own match.
+ */
+function entryActive(id: NavEntry['id'], pathname: string, search: string): boolean {
+  const params = new URLSearchParams(search);
+  switch (id) {
+    case 'dashboard':
+      return pathname === '/';
+    case 'tickets':
+      return pathname === '/tickets' && !params.has('scope') && !params.has('priority');
+    case 'queue':
+      return pathname === '/tickets' && params.get('scope') === 'mine';
+    case 'incidents':
+      return pathname === '/tickets' && params.has('priority');
+    case 'assets':
+      return pathname === '/assets' || pathname.startsWith('/assets/');
+    case 'knowledge':
+      return pathname === '/knowledge' || pathname.startsWith('/knowledge/');
+    case 'settings':
+      return pathname === '/admin/settings' || pathname.startsWith('/admin/');
+    case 'analytics':
+      return false;
+  }
+}
 
 function Brand({ compact }: { compact: boolean }) {
   return (
@@ -74,40 +106,48 @@ function Brand({ compact }: { compact: boolean }) {
   );
 }
 
-function Item({ entry, compact, onNavigate }: { entry: NavEntry; compact: boolean; onNavigate?: () => void }) {
+function Item({ entry, active, compact, onNavigate }: { entry: NavEntry; active: boolean; compact: boolean; onNavigate?: () => void }) {
   const Icon = entry.icon;
+  const classes = cn(
+    'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
+    active ? 'bg-brand-50 font-semibold text-brand-700' : 'text-ink-muted hover:bg-surface-sunken hover:text-ink',
+    compact && 'justify-center px-0',
+  );
+  const body = (
+    <>
+      {active && !compact && (
+        <span
+          className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-600"
+          aria-hidden="true"
+        />
+      )}
+      <Icon className="h-[1.05rem] w-[1.05rem] shrink-0" strokeWidth={1.75} aria-hidden="true" />
+      {!compact && <span className="truncate">{entry.label}</span>}
+      {!compact && entry.badge && (
+        <span className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-brand-900 px-1.5 py-0.5 text-2xs font-bold tabular text-white">
+          {entry.badge}
+        </span>
+      )}
+    </>
+  );
+  /* Hash anchors are plain jumps — they never take the active pill. */
+  if (entry.hash) {
+    return (
+      <a href={entry.to} onClick={onNavigate} title={compact ? entry.label : undefined} className={classes}>
+        {body}
+      </a>
+    );
+  }
   return (
-    <NavLink
+    <Link
       to={entry.to}
-      end={entry.end}
       onClick={onNavigate}
       title={compact ? entry.label : undefined}
-      className={({ isActive }) =>
-        cn(
-          'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
-          isActive ? 'bg-brand-50 font-semibold text-brand-700' : 'text-ink-muted hover:bg-surface-sunken hover:text-ink',
-          compact && 'justify-center px-0',
-        )
-      }
+      aria-current={active ? 'page' : undefined}
+      className={classes}
     >
-      {({ isActive }) => (
-        <>
-          {isActive && !compact && (
-            <span
-              className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-600"
-              aria-hidden="true"
-            />
-          )}
-          <Icon className="h-[1.05rem] w-[1.05rem] shrink-0" strokeWidth={1.75} aria-hidden="true" />
-          {!compact && <span className="truncate">{entry.label}</span>}
-          {!compact && entry.badge && (
-            <span className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-brand-900 px-1.5 py-0.5 text-2xs font-bold tabular text-white">
-              {entry.badge}
-            </span>
-          )}
-        </>
-      )}
-    </NavLink>
+      {body}
+    </Link>
   );
 }
 
@@ -145,8 +185,34 @@ function LogoutItem({ compact, onNavigate }: { compact: boolean; onNavigate?: ()
   );
 }
 
+/**
+ * Help opens the keyboard-shortcut overlay instead of sharing Knowledge's
+ * route — the old duplicate target lit two pills at once.
+ */
+function HelpButton({ compact, onNavigate }: { compact: boolean; onNavigate?: () => void }) {
+  const setShortcutHelpOpen = useUiStore((state) => state.setShortcutHelpOpen);
+  return (
+    <button
+      type="button"
+      title={compact ? 'Help' : undefined}
+      onClick={() => {
+        onNavigate?.();
+        setShortcutHelpOpen(true);
+      }}
+      className={cn(
+        'flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink',
+        compact && 'justify-center px-0',
+      )}
+    >
+      <LifeBuoy className="h-[1.05rem] w-[1.05rem] shrink-0" strokeWidth={1.75} aria-hidden="true" />
+      {!compact && <span className="truncate">Help</span>}
+    </button>
+  );
+}
+
 function Nav({ compact, onNavigate }: { compact: boolean; onNavigate?: () => void }) {
   const can = useAuthStore((state) => state.can);
+  const { pathname, search } = useLocation();
   const visible = (entries: NavEntry[]) =>
     entries.filter((entry) => !entry.permission || can(entry.permission));
 
@@ -157,13 +223,26 @@ function Nav({ compact, onNavigate }: { compact: boolean; onNavigate?: () => voi
     <nav className="flex flex-1 flex-col overflow-y-auto px-3 pb-4" aria-label="Primary">
       <SectionLabel compact={compact}>Menu</SectionLabel>
       {menu.map((entry) => (
-        <Item key={entry.label} entry={entry} compact={compact} onNavigate={onNavigate} />
+        <Item
+          key={entry.id}
+          entry={entry}
+          active={entryActive(entry.id, pathname, search)}
+          compact={compact}
+          onNavigate={onNavigate}
+        />
       ))}
 
       <SectionLabel compact={compact}>General</SectionLabel>
       {general.map((entry) => (
-        <Item key={entry.label} entry={entry} compact={compact} onNavigate={onNavigate} />
+        <Item
+          key={entry.id}
+          entry={entry}
+          active={entryActive(entry.id, pathname, search)}
+          compact={compact}
+          onNavigate={onNavigate}
+        />
       ))}
+      <HelpButton compact={compact} onNavigate={onNavigate} />
       <LogoutItem compact={compact} onNavigate={onNavigate} />
     </nav>
   );
@@ -191,12 +270,12 @@ function PromoCard({ compact }: { compact: boolean }) {
         <p className="relative mt-1 text-2xs leading-relaxed text-white/70">
           Triage tickets from anywhere.
         </p>
-        <NavLink
+        <Link
           to="/welcome"
           className="relative mt-3 block rounded-full bg-white/95 px-3 py-1.5 text-center text-xs font-semibold text-brand-800 transition-colors hover:bg-white"
         >
           Open overview
-        </NavLink>
+        </Link>
       </div>
     </div>
   );
