@@ -1,5 +1,14 @@
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'framer-motion';
 import { Reveal } from './Reveal';
+import { SplitWords } from './split';
 
 function TicketRow({ id, title, color, tag }: { id: string; title: string; color: string; tag: string }) {
   return (
@@ -23,12 +32,61 @@ function Chapter({ n, title }: { n: string; title: string }) {
   );
 }
 
-function SlaCountdown() {
+/** Marquee divider strip between chapters: reuses ticker style, aria-hidden duplicate. */
+function MarqueeDivider({ text }: { text: string }) {
   return (
-    <div className="ld-sla" role="img" aria-label="SLA countdown from 4 hours to breached">
-      <div className="ld-sla-time ld-mono">04:00:00</div>
+    <div className="ld-marquee ld-divider" aria-hidden="true">
+      <div className="ld-marquee-inner">
+        <span>
+          {text}&nbsp;&nbsp;·&nbsp;&nbsp;
+        </span>
+        <span>
+          {text}&nbsp;&nbsp;·&nbsp;&nbsp;
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const SLA_STEPS = ['04:00:00', '03:24:18', '01:42:09', '00:38:12', 'BREACHED'];
+
+/** Ch2 SLA countdown driven by scroll progress; red flip at BREACHED. Static when reduced-motion. */
+function SlaCountdown() {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const step = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], [0, 1, 2, 3, 4]);
+  const [label, setLabel] = useState(SLA_STEPS[0]);
+  useMotionValueEvent(step, 'change', (v) => {
+    setLabel(SLA_STEPS[Math.min(SLA_STEPS.length - 1, Math.max(0, Math.round(v)))]);
+  });
+
+  if (reduce) {
+    return (
+      <div className="ld-sla" role="img" aria-label="SLA countdown from 4 hours to breached">
+        <div className="ld-sla-time ld-mono">04:00:00</div>
+        <p style={{ fontSize: 13, fontWeight: 600, opacity: 0.75 }}>
+          Same ticket. Same team. The only difference: nobody watched the clock.
+        </p>
+      </div>
+    );
+  }
+
+  const breached = label === 'BREACHED';
+  return (
+    <div
+      ref={ref}
+      className="ld-sla"
+      role="img"
+      aria-label="SLA countdown from 4 hours to breached"
+    >
+      <motion.div
+        className={breached ? 'ld-sla-time breached ld-mono' : 'ld-sla-time ld-mono'}
+        aria-hidden="true"
+      >
+        {label}
+      </motion.div>
       <div style={{ margin: '10px 0', fontWeight: 800 }}>↓ scroll — the clock runs ↓</div>
-      <div className="ld-sla-time breached ld-mono">BREACHED</div>
       <p style={{ fontSize: 13, fontWeight: 600, opacity: 0.75 }}>
         Same ticket. Same team. The only difference: nobody watched the clock.
       </p>
@@ -44,7 +102,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 1" title="The flood" />
-            <h2 className="ld-h2">Monday, 9:03 AM. Thirty tickets before coffee.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="Monday, 9:03 AM. Thirty tickets before coffee." />
+            </h2>
             <div className="ld-grid2">
               <p className="ld-lede">
                 Password resets, a dead printer, VPN flapping on floor three. Every ticket screams
@@ -75,7 +135,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 2" title="The clock" />
-            <h2 className="ld-h2">Every SLA is a countdown. Watch one expire.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="Every SLA is a countdown. Watch one expire." />
+            </h2>
             <div className="ld-grid2">
               <div className="ld-panel">
                 <SlaCountdown />
@@ -98,7 +160,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 3" title="Fair clocks" />
-            <h2 className="ld-h2">6 PM. The clock freezes — fairly.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="6 PM. The clock freezes — fairly." />
+            </h2>
             <div className="ld-grid2">
               <p className="ld-lede">
                 Nobody should breach because the sun went down. Business-hour SLAs pause nights,
@@ -148,12 +212,16 @@ export function Story() {
         </div>
       </section>
 
+      <MarqueeDivider text="FAIR CLOCKS — NIGHTS, WEEKENDS & HOLIDAYS PAUSE THE SLA" />
+
       {/* 4 — problem */}
       <section id="story-4" className="ld-section alt-paper">
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 4" title="Pattern, not pile" />
-            <h2 className="ld-h2">Thirty tickets. One problem: INC-004.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="Thirty tickets. One problem: INC-004." />
+            </h2>
             <div className="ld-grid2">
               <div className="ld-panel">
                 <h3>🔗 Linked incidents → Problem INC-004 “Floor-3 gateway flapping”</h3>
@@ -182,7 +250,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 5" title="Answers, connected" />
-            <h2 className="ld-h2">The knowledge graph already knew.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="The knowledge graph already knew." />
+            </h2>
             <div className="ld-grid2">
               <p className="ld-lede">
                 <span className="ld-mono">KB-102 “VPN client setup”</span> links to{' '}
@@ -215,7 +285,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 6" title="The deflection" />
-            <h2 className="ld-h2">“VPN not connecting.” Answered before it became a ticket.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="“VPN not connecting.” Answered before it became a ticket." />
+            </h2>
             <div className="ld-grid2">
               <div className="ld-panel">
                 <h3>💬 Portal assistant · live demo</h3>
@@ -242,12 +314,16 @@ export function Story() {
         </div>
       </section>
 
+      <MarqueeDivider text="ONE IN THREE CHATS ENDS HERE — NO QUEUE, NO WAIT, NO TICKET" />
+
       {/* 7 — flywheel */}
       <section id="story-7" className="ld-section alt-paper">
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 7" title="The loop" />
-            <h2 className="ld-h2">Every resolution makes the next one faster.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="Every resolution makes the next one faster." />
+            </h2>
             <p className="ld-lede">
               Ticket → article → deflection → fewer tickets → deeper articles. The flywheel spins:
               Rahul resolves TKT-1042, documents it as KB-118 v2, and next month’s flood is 32%
@@ -271,7 +347,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 8" title="Every laptop has a past" />
-            <h2 className="ld-h2">LAP-1029 has been here before.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="LAP-1029 has been here before." />
+            </h2>
             <div className="ld-grid2">
               <p className="ld-lede">
                 Three VPN tickets, two driver faults, one warranty claim — all on the same laptop.
@@ -301,7 +379,9 @@ export function Story() {
         <div className="ld-wrap">
           <Reveal>
             <Chapter n="Chapter 9" title="Proof, not promises" />
-            <h2 className="ld-h2">The dashboard tells Monday’s story in numbers.</h2>
+            <h2 className="ld-h2">
+              <SplitWords text="The dashboard tells Monday’s story in numbers." />
+            </h2>
             <div className="ld-dash">
               {[
                 ['98.2%', 'SLA met · 7d'],

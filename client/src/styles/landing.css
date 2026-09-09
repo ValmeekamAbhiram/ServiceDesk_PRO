@@ -35,6 +35,7 @@
 .ld-h1 {
   font-size: clamp(44px, 8vw, 104px); line-height: 0.95; font-weight: 900;
   letter-spacing: -0.03em; margin: 20px 0 0; text-wrap: balance;
+  color: var(--ld-ink);
 }
 .ld-h1 .ld-outline {
   color: transparent; -webkit-text-stroke: 2.5px var(--ld-ink);
@@ -42,7 +43,9 @@
 .ld-h2 {
   font-size: clamp(30px, 4.6vw, 56px); line-height: 1.02; font-weight: 900;
   letter-spacing: -0.025em; margin: 0 0 14px; text-wrap: balance;
+  color: var(--ld-ink);
 }
+.block-green .ld-h2, .block-ink .ld-h2 { color: inherit; }
 .ld-lede { font-size: clamp(16px, 2vw, 20px); line-height: 1.6; color: var(--ld-ink-soft); max-width: 60ch; }
 .ld-chapter { font-size: 13px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.65; }
 
@@ -104,6 +107,25 @@
 }
 .ld-marquee-inner { display: inline-block; padding: 10px 0; animation: ld-scroll 22s linear infinite; }
 @keyframes ld-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ld-marquee.ld-divider { border-bottom: 2px solid var(--ld-ink); background: var(--ld-green); }
+
+/* split-words masked rise */
+.ld-mask { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: 0.09em; margin-bottom: -0.09em; }
+.ld-mask-inner { display: inline-block; will-change: transform; }
+
+/* hero parallax wrappers (positioning lives here; inner keeps float anim + widths) */
+.ld-para { position: absolute; }
+.ld-para.p1 { top: 6px; left: 4%; }
+.ld-para.p2 { top: 150px; right: 0; }
+.ld-para.p3 { bottom: 8px; left: 14%; }
+.ld-para .ld-card-float { position: static; }
+
+/* spinning circular badge */
+.ld-badge-spin { position: absolute; top: 0; right: 15%; width: 106px; height: 106px; animation: ld-spin 16s linear infinite; }
+.ld-badge-spin svg { width: 100%; height: 100%; overflow: visible; }
+.ld-badge-text { font-size: 12.5px; font-weight: 800; letter-spacing: 2px; fill: var(--ld-ink); }
+.ld-badge-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--ld-green); }
+@keyframes ld-spin { to { transform: rotate(360deg); } }
 
 /* story sections */
 .ld-section { padding: 84px 0; border-bottom: 2px solid var(--ld-ink); }
@@ -156,7 +178,7 @@
 .ld-asset-grid dd { margin: 0; font-weight: 600; }
 
 .ld-dash { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
-.ld-stat { border: 2px solid var(--ld-ink); border-radius: 14px; padding: 14px; background: #fff; }
+.ld-stat { border: 2px solid var(--ld-ink); border-radius: 14px; padding: 14px; background: #fff; color: var(--ld-ink); }
 .ld-stat b { font-size: 26px; display: block; letter-spacing: -0.02em; }
 .ld-stat small { font-weight: 700; font-size: 12px; opacity: 0.7; }
 
@@ -171,7 +193,7 @@
 .ld-reveal.ld-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .ld-reveal { opacity: 1; transform: none; transition: none; }
-  .ld-card-float, .ld-marquee-inner { animation: none; }
+  .ld-card-float, .ld-marquee-inner, .ld-badge-spin, .ld-mask-inner { animation: none; }
 }
 
 @media (max-width: 900px) {
