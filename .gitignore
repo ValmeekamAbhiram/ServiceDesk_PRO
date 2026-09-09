@@ -48,3 +48,4 @@ Thumbs.db
 # tooling scratch
 graphify-out/
 .build-scratch/
+.hermes/
