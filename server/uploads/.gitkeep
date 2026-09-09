@@ -1,0 +1,2 @@
+# Local attachment storage for STORAGE_DRIVER=local.
+# Uploaded files are ignored by git (see .gitignore); this file keeps the directory.
