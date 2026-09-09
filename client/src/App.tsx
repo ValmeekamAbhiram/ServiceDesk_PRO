@@ -74,16 +74,18 @@ export function App() {
           }
         />
 
+        {/* The front door: public landing for everyone, signed in or not. */}
         <Route
-          path="/welcome"
+          path="/"
           element={
-            <AnonymousRoute>
-              <Suspense fallback={<PageLoading />}>
-                <Landing />
-              </Suspense>
-            </AnonymousRoute>
+            <Suspense fallback={<PageLoading />}>
+              <Landing />
+            </Suspense>
           }
         />
+
+        {/* Old landing address — kept working, lands on the new front door. */}
+        <Route path="/welcome" element={<Navigate to="/" replace />} />
 
         <Route
           element={
@@ -92,7 +94,7 @@ export function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="tickets" element={<TicketList />} />
           <Route path="tickets/new" element={<TicketNew />} />
           <Route path="tickets/:id" element={<TicketDetail />} />

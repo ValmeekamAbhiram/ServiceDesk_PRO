@@ -46,7 +46,7 @@ interface NavEntry {
 }
 
 const MENU: NavEntry[] = [
-  { id: 'dashboard', to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'tickets', to: '/tickets', label: 'Tickets', icon: Ticket, badge: '128' },
   { id: 'queue', to: '/tickets?scope=mine', label: 'My Queue', icon: Inbox },
   { id: 'incidents', to: '/tickets?priority=URGENT', label: 'Incidents', icon: Flame },
@@ -71,7 +71,7 @@ function entryActive(id: NavEntry['id'], pathname: string, search: string): bool
   const params = new URLSearchParams(search);
   switch (id) {
     case 'dashboard':
-      return pathname === '/';
+      return pathname === '/dashboard';
     case 'tickets':
       return pathname === '/tickets' && !params.has('scope') && !params.has('priority');
     case 'queue':
@@ -271,7 +271,7 @@ function PromoCard({ compact }: { compact: boolean }) {
           Triage tickets from anywhere.
         </p>
         <Link
-          to="/welcome"
+          to="/"
           className="relative mt-3 block rounded-full bg-white/95 px-3 py-1.5 text-center text-xs font-semibold text-brand-800 transition-colors hover:bg-white"
         >
           Open overview

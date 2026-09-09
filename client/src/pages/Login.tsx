@@ -49,7 +49,7 @@ export default function Login() {
       await login(values.email, values.password);
       /* Back to whatever they were trying to reach, or the dashboard. */
       const from = (location.state as { from?: string } | null)?.from;
-      navigate(from && from !== '/login' ? from : '/', { replace: true });
+      navigate(from && from !== '/login' ? from : '/dashboard', { replace: true });
     } catch (error) {
       setFailure(applyServerErrors(error, form, ['email', 'password']));
     }

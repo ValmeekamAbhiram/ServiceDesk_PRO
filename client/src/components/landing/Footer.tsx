@@ -10,7 +10,7 @@ export function Footer() {
             IT support without the chaos. SLAs, problems, knowledge, and assets — one calm desk.
           </p>
           <p style={{ marginTop: 16 }}>
-            <Link to="/" className="ld-btn ld-btn-green">
+            <Link to="/dashboard" className="ld-btn ld-btn-green">
               Enter Service Desk →
             </Link>
           </p>
@@ -18,7 +18,7 @@ export function Footer() {
         <div>
           <h4>Product</h4>
           <p>
-            <Link to="/">Dashboard</Link>
+            <Link to="/dashboard">Dashboard</Link>
           </p>
           <p>
             <Link to="/login">Sign in</Link>

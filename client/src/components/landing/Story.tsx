@@ -316,7 +316,7 @@ export function Story() {
               ))}
             </div>
             <div className="ld-btn-row">
-              <Link to="/" className="ld-btn" style={{ background: '#fff', color: '#16130c' }}>
+              <Link to="/dashboard" className="ld-btn" style={{ background: '#fff', color: '#16130c' }}>
                 Enter Service Desk →
               </Link>
               <Link

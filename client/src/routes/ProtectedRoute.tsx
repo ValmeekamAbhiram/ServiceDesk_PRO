@@ -42,7 +42,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 export function AnonymousRoute({ children }: { children: ReactNode }) {
   const status = useAuthStore((state) => state.status);
   if (status === 'loading') return <Splash />;
-  if (status === 'authenticated') return <Navigate to="/" replace />;
+  if (status === 'authenticated') return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
 

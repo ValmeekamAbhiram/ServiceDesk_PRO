@@ -39,7 +39,7 @@ export function Hero() {
             behind incidents, and answers that arrive before the ticket does.
           </p>
           <div className="ld-btn-row">
-            <Link to="/" className="ld-btn ld-btn-green">
+            <Link to="/dashboard" className="ld-btn ld-btn-green">
               Enter Service Desk →
             </Link>
             <Link to="/login" className="ld-btn ld-btn-ghost">

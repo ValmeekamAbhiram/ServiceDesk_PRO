@@ -51,7 +51,7 @@ export default function Register() {
     setFailure(null);
     try {
       await register(values.name, values.email, values.password);
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       setFailure(applyServerErrors(error, form, ['name', 'email', 'password']));
     }
