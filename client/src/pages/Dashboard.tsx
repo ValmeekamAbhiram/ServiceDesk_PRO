@@ -53,9 +53,11 @@ interface KpiView {
   trendTone: 'up' | 'down' | 'flat';
 }
 
-function toKpiViews(kpis: KpiDto[]): KpiView[] {
+function toKpiViews(kpis: KpiDto[], fallback: boolean): KpiView[] {
   const list = kpis.length >= 4 ? kpis.slice(0, 4) : MOCK_KPIS;
-  const labels = ['Open tickets', 'SLA attainment', 'Active incidents', 'AI deflection'];
+  /* Mock data wears the showcase labels; live data keeps the server's own
+   * labels — renaming "Resolved (7 days)" to "SLA attainment" invented metrics. */
+  const labels = fallback ? ['Open tickets', 'SLA attainment', 'Active incidents', 'AI deflection'] : [];
   return list.map((kpi, i) => {
     const value =
       kpi.format === 'percent'
@@ -350,7 +352,7 @@ function DashboardReady({
   refreshing: boolean;
   onRefresh: () => void;
 }) {
-  const kpis = toKpiViews(data.kpis);
+  const kpis = toKpiViews(data.kpis, fallback);
   const weekValues = (data.volume.length > 0 ? data.volume.slice(-7) : []).map((p) => p.created + p.resolved);
   const analytics = weekValues.length === 7 ? weekValues : MOCK_WEEK_VOLUME.map((d) => d.created + d.resolved);
   const techRows = data.technicianLoad.length > 0 ? data.technicianLoad : MOCK_TECH_LOAD;

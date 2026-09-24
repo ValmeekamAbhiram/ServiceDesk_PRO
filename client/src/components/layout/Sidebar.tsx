@@ -28,6 +28,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Permission } from '@shared/enums';
+import { useDashboard } from '@/api/dashboard';
 import { cn } from '@/lib/cn';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUiStore } from '@/stores/ui.store';
@@ -47,7 +48,7 @@ interface NavEntry {
 
 const MENU: NavEntry[] = [
   { id: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'tickets', to: '/tickets', label: 'Tickets', icon: Ticket, badge: '128' },
+  { id: 'tickets', to: '/tickets', label: 'Tickets', icon: Ticket },
   { id: 'queue', to: '/tickets?scope=mine', label: 'My Queue', icon: Inbox },
   { id: 'incidents', to: '/tickets?priority=URGENT', label: 'Incidents', icon: Flame },
   { id: 'assets', to: '/assets', label: 'Assets', icon: Boxes, permission: Permission.ASSET_READ },
@@ -213,10 +214,21 @@ function HelpButton({ compact, onNavigate }: { compact: boolean; onNavigate?: ()
 function Nav({ compact, onNavigate }: { compact: boolean; onNavigate?: () => void }) {
   const can = useAuthStore((state) => state.can);
   const { pathname, search } = useLocation();
+  /* Same query key as the dashboard page — shared cache, no extra request.
+   * The Tickets badge is the live open-ticket KPI; unknown stays unbadged
+   * rather than showing a stale invented number. */
+  const dashboard = useDashboard();
+  const openCount = dashboard.data?.kpis.find((kpi) => /open/i.test(kpi.label))?.value;
+  const withLiveBadge = (entries: NavEntry[]): NavEntry[] =>
+    entries.map((entry) =>
+      entry.id === 'tickets' && typeof openCount === 'number'
+        ? { ...entry, badge: String(openCount) }
+        : entry,
+    );
   const visible = (entries: NavEntry[]) =>
     entries.filter((entry) => !entry.permission || can(entry.permission));
 
-  const menu = visible(MENU);
+  const menu = withLiveBadge(visible(MENU));
   const general = visible(GENERAL);
 
   return (
