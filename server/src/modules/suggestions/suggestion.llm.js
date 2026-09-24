@@ -198,7 +198,7 @@ export async function suggestWithLlm(input, candidates) {
     try {
         let response;
         if (env.aiProvider === 'gemini') {
-            const model = env.aiModel || 'gemini-1.5-flash';
+            const model = env.aiModel || 'gemini-2.5-flash';
             const apiKey = env.aiApiKey || env.GEMINI_API_KEY || env.AI_API_KEY;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
             response = await fetch(url, {

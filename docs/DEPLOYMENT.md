@@ -55,7 +55,7 @@ This guide covers deploying **ServiceDesk Pro** to **Render** and **Vercel**.
    - `CLIENT_URL`: `https://your-project.vercel.app` (your Vercel URL)
    - `AI_PROVIDER`: `gemini` (or `heuristic` for offline classifier)
    - `GEMINI_API_KEY`: *(Optional: Google Gemini API key)*
-   - `AI_MODEL`: `gemini-1.5-flash`
+   - `AI_MODEL`: `gemini-2.5-flash`
 
 ---
 

@@ -173,7 +173,7 @@ const EnvSchema = z.object({
     AI_PROVIDER: zLowerEnum(['auto', 'gemini', 'anthropic', 'heuristic'], 'gemini'),
     AI_API_KEY: z.string().default(''),
     GEMINI_API_KEY: z.string().default(''),
-    AI_MODEL: z.string().default('gemini-1.5-flash'),
+    AI_MODEL: z.string().default('gemini-2.5-flash'),
     AI_MAX_TOKENS: z.coerce.number().int().min(64).max(8_000).default(800),
     AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60_000).default(15_000),
     AI_ENABLED: zBool(true),
@@ -272,7 +272,7 @@ if (raw.AI_ENABLED && aiHasKey) {
         }
     }
 }
-const aiModel = raw.AI_MODEL.trim() || (aiProvider === 'gemini' ? 'gemini-1.5-flash' : 'claude-sonnet-5');
+const aiModel = raw.AI_MODEL.trim() || (aiProvider === 'gemini' ? 'gemini-2.5-flash' : 'claude-sonnet-5');
 if (raw.AI_ENABLED && raw.AI_PROVIDER !== 'heuristic' && !aiHasKey) {
     warnings.push('AI_API_KEY / GEMINI_API_KEY is empty — ticket suggestions will use the offline keyword classifier.');
 }

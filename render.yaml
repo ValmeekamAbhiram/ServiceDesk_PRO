@@ -46,7 +46,7 @@ services:
       - key: AI_PROVIDER
         value: gemini
       - key: AI_MODEL
-        value: gemini-1.5-flash
+        value: gemini-2.5-flash
       - key: AI_ENABLED
         value: true
       # Optional: Google Gemini API key for AI ticket classification
