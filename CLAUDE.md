@@ -10,15 +10,14 @@ Rules:
 
 ## Conventions
 
-Stack is **MERN + TypeScript only** — no Redis, Elasticsearch, vector DB, message
+Stack is **MERN + JavaScript (ES Modules + JSX)** — no Redis, Elasticsearch, vector DB, message
 queue or mandatory cloud service. Search is Mongo text indexes, rate limiting is
 in-process, background work is `setInterval`, uploads go to local disk via multer.
 
-- **Enums** are `as const` objects with a derived union type, in `shared/src/enums.ts`.
-  Bridge to Zod with `z.nativeEnum(X)`, never `z.enum(ARRAY as [string, ...])`.
-- **Imports are extensionless** (`moduleResolution: "bundler"`), `"type": "module"`,
-  so no `require()`. The server runs on `tsx`; `build` and `typecheck` are both
-  `tsc --noEmit`.
+- **Enums** are frozen objects, in `shared/src/enums.js`.
+  Bridge to Zod with `z.nativeEnum(X)`.
+- **Imports are extensionless**, `"type": "module"`, so no `require()`.
+  Path aliases `@/` and `@shared/` are configured via `jsconfig.json`, Vite, and `tsconfig.json`.
 - **tsx only applies tsconfig `paths` to files matched by `include`.** A scratch script
   at the server root or in `/tmp` cannot resolve `@/…` or even `mongoose`. Put
   throwaway repros in `server/src/`.

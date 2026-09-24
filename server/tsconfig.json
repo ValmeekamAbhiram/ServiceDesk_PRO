@@ -23,12 +23,15 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
 
+    "allowJs": true,
+    "checkJs": false,
+
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/src/*"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "../shared/src/**/*.ts", "vitest.config.ts"],
+  "include": ["src/**/*.js", "src/**/*.ts", "../shared/src/**/*.js", "../shared/src/**/*.ts", "vitest.config.js", "vitest.config.ts"],
   "exclude": ["node_modules", "dist", "uploads"]
 }
