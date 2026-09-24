@@ -53,8 +53,9 @@ This guide covers deploying **ServiceDesk Pro** to **Render** and **Vercel**.
    - `JWT_REFRESH_SECRET`: *(Generate a second, distinct secret)*
    - `SERVER_URL`: `https://servicedesk-api.onrender.com` (your Render URL)
    - `CLIENT_URL`: `https://your-project.vercel.app` (your Vercel URL)
-   - `AI_PROVIDER`: `auto` (or `anthropic` if providing `AI_API_KEY`)
-   - `AI_API_KEY`: *(Optional: Anthropic Claude API key)*
+   - `AI_PROVIDER`: `gemini` (or `heuristic` for offline classifier)
+   - `GEMINI_API_KEY`: *(Optional: Google Gemini API key)*
+   - `AI_MODEL`: `gemini-1.5-flash`
 
 ---
 

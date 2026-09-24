@@ -24,6 +24,18 @@ const reply = (text) => ({
     role: 'assistant',
     content: [{ type: 'text', text }],
 });
+/** A Google Gemini generateContent response with candidates and parts. */
+const geminiReply = (text) => ({
+    candidates: [
+        {
+            content: {
+                parts: [{ text }],
+                role: 'model',
+            },
+            finishReason: 'STOP',
+        },
+    ],
+});
 const GOOD = JSON.stringify({
     categoryId: 'cat-network',
     priority: 'URGENT',
@@ -64,6 +76,34 @@ describe('accepting a usable reply', () => {
         const result = interpretReply(reply(none), CANDIDATES);
         expect(result?.categoryId).toBeNull();
         expect(result?.categoryName).toBeNull();
+    });
+    it('interprets a Google Gemini candidate reply', () => {
+        const result = interpretReply(geminiReply(GOOD), CANDIDATES);
+        expect(result).toEqual({
+            categoryId: 'cat-network',
+            categoryName: 'Network',
+            priority: Priority.URGENT,
+            confidence: 0.8,
+            reason: 'The whole office has lost the VPN.',
+        });
+    });
+    it('interprets Gemini reply with multi-part text', () => {
+        const multiPartGemini = {
+            candidates: [
+                {
+                    content: {
+                        parts: [
+                            { text: '{\n"categoryId": "cat-hardware",\n"priority": "HIGH",' },
+                            { text: '\n"confidence": 0.9,\n"reason": "Printer hardware failure."\n}' },
+                        ],
+                    },
+                },
+            ],
+        };
+        const result = interpretReply(multiPartGemini, CANDIDATES);
+        expect(result?.categoryId).toBe('cat-hardware');
+        expect(result?.categoryName).toBe('Hardware');
+        expect(result?.priority).toBe(Priority.HIGH);
     });
 });
 describe('refusing what it must not pass on', () => {

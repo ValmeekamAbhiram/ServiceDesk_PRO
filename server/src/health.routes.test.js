@@ -44,7 +44,7 @@ describe('GET /api/health', () => {
         expect(body.nodeEnv).toBe('test');
         expect(body.timezone).toEqual(expect.any(String));
         expect(body.maxUploadMb).toBeGreaterThan(0);
-        expect(['anthropic', 'heuristic']).toContain(body.aiProvider);
+        expect(['gemini', 'anthropic', 'heuristic']).toContain(body.aiProvider);
     });
     it('reports simulated time, so a probe sees the clock the rest of the app sees', async () => {
         const before = new Date((await health()).body.data.time).getTime();

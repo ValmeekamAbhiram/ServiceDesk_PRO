@@ -45,6 +45,7 @@ const VERBATIM_KEYS = new Set([
     'JWT_SECRET',
     'JWT_REFRESH_SECRET',
     'AI_API_KEY',
+    'GEMINI_API_KEY',
     'SEED_PASSWORD',
     'MONGO_URI',
 ]);
@@ -169,9 +170,10 @@ const EnvSchema = z.object({
     BUSINESS_TIMEZONE: z.string().min(1).default('Asia/Kolkata'),
     SLA_MONITOR_INTERVAL_SECONDS: z.coerce.number().int().min(5).max(3600).default(60),
     /* Ticket suggestions. With no key, the offline classifier is used. */
-    AI_PROVIDER: zLowerEnum(['auto', 'anthropic', 'heuristic'], 'auto'),
+    AI_PROVIDER: zLowerEnum(['auto', 'gemini', 'anthropic', 'heuristic'], 'gemini'),
     AI_API_KEY: z.string().default(''),
-    AI_MODEL: z.string().default('claude-sonnet-5'),
+    GEMINI_API_KEY: z.string().default(''),
+    AI_MODEL: z.string().default('gemini-1.5-flash'),
     AI_MAX_TOKENS: z.coerce.number().int().min(64).max(8_000).default(800),
     AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60_000).default(15_000),
     AI_ENABLED: zBool(true),
@@ -254,10 +256,25 @@ const inMemoryDb = isProduction
  * classifier, and the resolution happens here, once — so no service has to decide
  * for itself whether it is allowed to make a network call.
  */
-const aiHasKey = raw.AI_API_KEY.trim().length > 0;
-const aiProvider = raw.AI_ENABLED && raw.AI_PROVIDER !== 'heuristic' && aiHasKey ? 'anthropic' : 'heuristic';
+const effectiveApiKey = (raw.GEMINI_API_KEY || raw.AI_API_KEY).trim();
+const aiHasKey = effectiveApiKey.length > 0;
+let aiProvider = 'heuristic';
+if (raw.AI_ENABLED && aiHasKey) {
+    if (raw.AI_PROVIDER === 'gemini') {
+        aiProvider = 'gemini';
+    } else if (raw.AI_PROVIDER === 'anthropic') {
+        aiProvider = 'anthropic';
+    } else if (raw.AI_PROVIDER === 'auto') {
+        if (raw.GEMINI_API_KEY || effectiveApiKey.startsWith('AIza') || raw.AI_MODEL.toLowerCase().includes('gemini')) {
+            aiProvider = 'gemini';
+        } else {
+            aiProvider = 'anthropic';
+        }
+    }
+}
+const aiModel = raw.AI_MODEL.trim() || (aiProvider === 'gemini' ? 'gemini-1.5-flash' : 'claude-sonnet-5');
 if (raw.AI_ENABLED && raw.AI_PROVIDER !== 'heuristic' && !aiHasKey) {
-    warnings.push('AI_API_KEY is empty — ticket suggestions will use the offline keyword classifier.');
+    warnings.push('AI_API_KEY / GEMINI_API_KEY is empty — ticket suggestions will use the offline keyword classifier.');
 }
 /** Absolute upload root; relative values resolve against `server/`. */
 const uploadDir = path.isAbsolute(raw.UPLOAD_DIR)
@@ -298,6 +315,8 @@ export const env = Object.freeze({
     demoMode,
     inMemoryDb,
     aiProvider,
+    aiModel,
+    aiApiKey: effectiveApiKey,
     aiConfigured: aiHasKey,
     uploadDir,
     corsOrigins,

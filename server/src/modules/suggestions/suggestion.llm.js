@@ -94,10 +94,22 @@ function buildUserMessage(input, candidates) {
         `DESCRIPTION: ${body || '(none given)'}`,
     ].join('\n');
 }
-/** Anthropic returns content as blocks; only the text ones concern us. */
+/** Extracts text from either Google Gemini response or Anthropic response. */
 function extractText(payload) {
     if (typeof payload !== 'object' || payload === null)
         return '';
+    // Google Gemini format: payload.candidates[0].content.parts[0].text
+    if (Array.isArray(payload.candidates) && payload.candidates.length > 0) {
+        const parts = payload.candidates[0]?.content?.parts;
+        if (Array.isArray(parts)) {
+            return parts
+                .filter((p) => typeof p?.text === 'string')
+                .map((p) => p.text)
+                .join('\n')
+                .trim();
+        }
+    }
+    // Anthropic format: payload.content[...].text
     const blocks = payload.content;
     if (!Array.isArray(blocks))
         return '';
@@ -181,24 +193,54 @@ export function interpretReply(payload, candidates) {
  * path of somebody typing.
  */
 export async function suggestWithLlm(input, candidates) {
-    if (env.aiProvider !== 'anthropic' || candidates.length === 0)
+    if ((env.aiProvider !== 'gemini' && env.aiProvider !== 'anthropic') || candidates.length === 0)
         return null;
     try {
-        const response = await fetch(ANTHROPIC_URL, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-                'x-api-key': env.AI_API_KEY,
-                'anthropic-version': ANTHROPIC_VERSION,
-            },
-            body: JSON.stringify({
-                model: env.AI_MODEL,
-                max_tokens: env.AI_MAX_TOKENS,
-                system: SYSTEM_PROMPT,
-                messages: [{ role: 'user', content: buildUserMessage(input, candidates) }],
-            }),
-            signal: AbortSignal.timeout(env.AI_TIMEOUT_MS),
-        });
+        let response;
+        if (env.aiProvider === 'gemini') {
+            const model = env.aiModel || 'gemini-1.5-flash';
+            const apiKey = env.aiApiKey || env.GEMINI_API_KEY || env.AI_API_KEY;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    systemInstruction: {
+                        parts: [{ text: SYSTEM_PROMPT }]
+                    },
+                    contents: [
+                        {
+                            parts: [{ text: buildUserMessage(input, candidates) }]
+                        }
+                    ],
+                    generationConfig: {
+                        responseMimeType: 'application/json',
+                        maxOutputTokens: env.AI_MAX_TOKENS,
+                        temperature: 0.2,
+                    }
+                }),
+                signal: AbortSignal.timeout(env.AI_TIMEOUT_MS),
+            });
+        }
+        else {
+            response = await fetch(ANTHROPIC_URL, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                    'x-api-key': env.aiApiKey || env.AI_API_KEY,
+                    'anthropic-version': ANTHROPIC_VERSION,
+                },
+                body: JSON.stringify({
+                    model: env.aiModel || env.AI_MODEL || 'claude-sonnet-5',
+                    max_tokens: env.AI_MAX_TOKENS,
+                    system: SYSTEM_PROMPT,
+                    messages: [{ role: 'user', content: buildUserMessage(input, candidates) }],
+                }),
+                signal: AbortSignal.timeout(env.AI_TIMEOUT_MS),
+            });
+        }
         if (!response.ok) {
             /* Status only. A body can echo the request, and the request is ticket text. */
             log.warn({ status: response.status }, 'Suggestion provider refused the request.');
