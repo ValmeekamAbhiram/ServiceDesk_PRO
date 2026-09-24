@@ -14,7 +14,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { Permission } from '@shared/enums';
 import { AppShell } from '@/components/layout/AppShell';
 import { Toaster } from '@/components/ui/Toaster';
-import { Spinner } from '@/components/ui/Spinner';
 import { AnonymousRoute, ProtectedRoute, RequirePermission } from '@/routes/ProtectedRoute';
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -37,28 +36,22 @@ const AdminSettings = lazy(() => import('@/pages/AdminSettings'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
-function PageLoading() {
-    return (<div className="flex min-h-[60vh] items-center justify-center">
-      <Spinner className="h-5 w-5 text-brand-600"/>
-      <span className="sr-only">Loading page</span>
-    </div>);
-}
 export function App() {
     return (<>
       <Routes>
         <Route path="/login" element={<AnonymousRoute>
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={null}>
                 <Login />
               </Suspense>
             </AnonymousRoute>}/>
         <Route path="/register" element={<AnonymousRoute>
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={null}>
                 <Register />
               </Suspense>
             </AnonymousRoute>}/>
 
         {/* The front door: public landing for everyone, signed in or not. */}
-        <Route path="/" element={<Suspense fallback={<PageLoading />}>
+        <Route path="/" element={<Suspense fallback={null}>
               <Landing />
             </Suspense>}/>
 

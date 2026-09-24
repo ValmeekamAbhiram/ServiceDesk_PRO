@@ -11,19 +11,13 @@
  * during that window logs the user out of their own session on every reload.
  */
 import { Navigate, useLocation } from 'react-router-dom';
-import { Spinner } from '@/components/ui/Spinner';
 import { useAuthStore } from '@/stores/auth.store';
-function Splash() {
-    return (<div className="flex min-h-screen items-center justify-center bg-canvas">
-      <Spinner className="h-6 w-6 text-brand-600"/>
-      <span className="sr-only">Loading</span>
-    </div>);
-}
+
 export function ProtectedRoute({ children }) {
     const status = useAuthStore((state) => state.status);
     const location = useLocation();
     if (status === 'loading')
-        return <Splash />;
+        return null;
     if (status === 'anonymous') {
         /* Carry the attempted path so signing in returns here instead of the dashboard. */
         return <Navigate to="/login" replace state={{ from: location.pathname + location.search }}/>;
@@ -34,7 +28,7 @@ export function ProtectedRoute({ children }) {
 export function AnonymousRoute({ children }) {
     const status = useAuthStore((state) => state.status);
     if (status === 'loading')
-        return <Splash />;
+        return null;
     if (status === 'authenticated')
         return <Navigate to="/dashboard" replace/>;
     return <>{children}</>;
