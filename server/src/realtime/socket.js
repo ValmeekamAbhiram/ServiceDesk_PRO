@@ -27,7 +27,7 @@ import { randomUUID } from 'node:crypto';
 import { Server } from 'socket.io';
 import { ClientEvent, QUEUE_ROOM, SOCKET_NAMESPACE, ticketRoom, userRoom } from '@shared/socket';
 import { getClock } from '@/config/clock';
-import { env } from '@/config/env';
+import { env, isAllowedOrigin } from '@/config/env';
 import { moduleLogger } from '@/config/logger';
 import { isStaff } from '@/core/actor';
 import { authenticateToken } from '@/middleware/authenticate';
@@ -159,7 +159,12 @@ function onConnection(socket) {
  */
 export function attachSocketServer(httpServer) {
     const io = new Server(httpServer, {
-        cors: { origin: env.corsOrigins, credentials: true },
+        cors: {
+            origin: (origin, callback) => {
+                callback(null, isAllowedOrigin(origin));
+            },
+            credentials: true,
+        },
         /* The client is a browser on the same origin family; long-polling is only a
          * fallback, and allowing it keeps the app working behind proxies that break
          * websocket upgrades. */

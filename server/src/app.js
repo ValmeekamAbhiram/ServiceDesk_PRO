@@ -9,11 +9,13 @@
  * Socket.IO to the same HTTP server and the test suite can drive it with supertest
  * without opening a port.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import compression from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
-import { env, publicConfig } from '@/config/env';
+import { env, isAllowedOrigin, publicConfig, REPO_ROOT } from '@/config/env';
 import { getClock } from '@/config/clock';
 import { dbHealth } from '@/config/db';
 import { errorHandler, globalRateLimit, notFoundHandler, requestId, requestLog, } from '@/middleware';
@@ -42,9 +44,13 @@ export function createApp() {
     app.set('trust proxy', 1);
     app.disable('x-powered-by');
     app.use(requestId());
-    app.use(helmet());
+    app.use(helmet({
+        contentSecurityPolicy: false,
+    }));
     app.use(cors({
-        origin: env.corsOrigins,
+        origin: (origin, callback) => {
+            callback(null, isAllowedOrigin(origin));
+        },
         credentials: false, // tokens travel in the Authorization header, not cookies
         exposedHeaders: ['X-Request-Id', 'Retry-After'],
     }));
@@ -83,6 +89,20 @@ export function createApp() {
     app.use('/api/audit', auditRouter);
     app.use('/api/settings', settingsRouter);
     app.use('/api/demo', demoRouter);
+    /* ───────────────────────── frontend static build ───────────────────────
+     * When deployed as a single full-stack service (e.g. Render Web Service),
+     * Express serves the compiled React client from `client/dist`.
+     * --------------------------------------------------------------------------- */
+    const clientDist = path.resolve(REPO_ROOT, 'client/dist');
+    if (fs.existsSync(clientDist)) {
+        app.use(express.static(clientDist));
+        app.get('*', (req, res, next) => {
+            if (req.path.startsWith('/api') || req.path.startsWith('/rt') || req.path.startsWith('/socket.io')) {
+                return next();
+            }
+            res.sendFile(path.join(clientDist, 'index.html'));
+        });
+    }
     /* Must stay last, in this order. */
     app.use(notFoundHandler());
     app.use(errorHandler());

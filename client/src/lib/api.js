@@ -89,8 +89,9 @@ function toApiClientError(error) {
         message: error instanceof Error ? error.message : 'Something went wrong.',
     });
 }
+export const API_BASE = (import.meta.env?.VITE_API_URL ?? '').replace(/\/+$/, '');
 export const http = axios.create({
-    baseURL: '/api',
+    baseURL: `${API_BASE}/api`,
     timeout: 20_000,
     headers: { Accept: 'application/json' },
 });
@@ -110,7 +111,7 @@ async function refreshAccessToken() {
         throw new ApiClientError({ code: ErrorCode.UNAUTHENTICATED, message: 'Your session has ended. Please sign in again.' });
     /* A bare axios call, not `http`: going through the instance would attach the dead
      * access token and re-enter this interceptor on failure. */
-    const response = await axios.post('/api/auth/refresh', {
+    const response = await axios.post(`${API_BASE}/api/auth/refresh`, {
         refreshToken: session.refreshToken,
     });
     const auth = response.data.data;

@@ -9,12 +9,16 @@
 import { Download, Paperclip } from 'lucide-react';
 import { formatBytes } from '@/lib/uploads';
 import { cn } from '@/lib/cn';
+import { API_BASE } from '@/lib/api';
+
 export function AttachmentList({ attachments, className, }) {
     if (attachments.length === 0)
         return null;
     return (<ul className={cn('space-y-1.5', className)}>
-      {attachments.map((attachment) => (<li key={attachment.id}>
-          <a href={attachment.url} 
+      {attachments.map((attachment) => {
+        const downloadUrl = attachment.url.startsWith('http') ? attachment.url : `${API_BASE}${attachment.url}`;
+        return (<li key={attachment.id}>
+          <a href={downloadUrl} 
         /* `download` asks the browser to save rather than navigate, which matters
          * for the text and PDF types that would otherwise replace the page. */
         download={attachment.filename} className="group flex items-center gap-2 rounded-md border border-line bg-surface-sunken px-2.5 py-1.5 text-xs hover:border-line-strong">
@@ -25,6 +29,7 @@ export function AttachmentList({ attachments, className, }) {
             </span>
             <Download className="h-3.5 w-3.5 shrink-0 text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true"/>
           </a>
-        </li>))}
+        </li>);
+      })}
     </ul>);
 }

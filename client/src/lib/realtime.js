@@ -49,7 +49,9 @@ export function connectRealtime(next) {
         return;
     }
     status('connecting');
-    socket = io(SOCKET_NAMESPACE, {
+    const apiBase = (import.meta.env?.VITE_API_URL ?? '').replace(/\/+$/, '');
+    const socketEndpoint = apiBase ? `${apiBase}${SOCKET_NAMESPACE}` : SOCKET_NAMESPACE;
+    socket = io(socketEndpoint, {
         /* A function, not a value: it is evaluated again on every reconnect attempt, so a
          * token refreshed by the api layer is used without reopening the socket. */
         auth: (cb) => cb({ token: getSession()?.accessToken ?? '' }),

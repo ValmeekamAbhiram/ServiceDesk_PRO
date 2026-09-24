@@ -264,6 +264,17 @@ const uploadDir = path.isAbsolute(raw.UPLOAD_DIR)
     ? raw.UPLOAD_DIR
     : path.resolve(SERVER_ROOT, raw.UPLOAD_DIR);
 const corsOrigins = Array.from(new Set([raw.CLIENT_URL, ...raw.CORS_EXTRA_ORIGINS]));
+export function isAllowedOrigin(origin) {
+    if (!origin)
+        return true;
+    if (corsOrigins.includes(origin))
+        return true;
+    if (/^https:\/\/[a-z0-9-]+(\.vercel\.app|\.onrender\.com)$/i.test(origin))
+        return true;
+    if (!isProduction && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin))
+        return true;
+    return false;
+}
 function readPackageVersion() {
     try {
         const pkg = JSON.parse(fs.readFileSync(path.join(SERVER_ROOT, 'package.json'), 'utf8'));
