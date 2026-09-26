@@ -13,6 +13,7 @@ import { logger, logStartupWarnings, withQuietLogs } from '@/config/logger';
 import { createApp } from '@/app';
 import { attachSocketServer, closeSocketServer } from '@/realtime/socket';
 import { startSlaMonitor, stopSlaMonitor } from '@/modules/sla/sla-monitor';
+import { ensureDefaultCategories } from '@/modules/categories/category.service';
 const log = logger.child({ module: 'bootstrap' });
 /**
  * Populate an ephemeral database before the port opens.
@@ -56,6 +57,7 @@ async function main() {
     logStartupWarnings();
     const db = await connectDb();
     log.info({ kind: db.kind, target: db.target, ephemeral: db.ephemeral }, 'Database connected');
+    await ensureDefaultCategories();
     if (db.ephemeral && !env.isProduction)
         await seedEphemeralDatabase();
     const server = http.createServer(createApp());

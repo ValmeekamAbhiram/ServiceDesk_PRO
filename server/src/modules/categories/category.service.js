@@ -46,15 +46,103 @@ export function slugify(name) {
         .replace(/^-+|-+$/g, '')
         .slice(0, 80);
 }
+export async function ensureDefaultCategories() {
+    const count = await Category.countDocuments();
+    if (count > 0) return;
+    const defaultCategories = [
+        {
+            name: 'Network & Connectivity',
+            slug: 'network',
+            description: 'Wi-Fi, VPN, cabling, and anything that will not reach the internet.',
+            color: '#2563eb',
+            defaultPriority: 'HIGH',
+            sortOrder: 10,
+            keywords: ['wifi', 'wi-fi', 'vpn', 'internet', 'network', 'ethernet', 'lan', 'router', 'switch', 'dns', 'slow connection', 'cannot connect', 'no internet', 'dropping'],
+            active: true,
+        },
+        {
+            name: 'Hardware',
+            slug: 'hardware',
+            description: 'Laptops, desktops, monitors, docks, keyboards and batteries.',
+            color: '#c2410c',
+            defaultPriority: 'MEDIUM',
+            sortOrder: 20,
+            keywords: ['laptop', 'desktop', 'monitor', 'screen', 'keyboard', 'mouse', 'dock', 'battery', 'charger', 'overheating', 'blue screen', 'will not boot', 'fan noise', 'cracked'],
+            active: true,
+        },
+        {
+            name: 'Software & Applications',
+            slug: 'software',
+            description: 'Installs, licences, updates, crashes and Office problems.',
+            color: '#7c3aed',
+            defaultPriority: 'MEDIUM',
+            sortOrder: 30,
+            keywords: ['software', 'application', 'excel', 'outlook', 'teams', 'install', 'licence', 'license', 'update', 'crash', 'freezing', 'error message', 'add-in', 'browser'],
+            active: true,
+        },
+        {
+            name: 'Accounts & Access',
+            slug: 'access',
+            description: 'Passwords, lockouts, MFA, shared drives and permissions.',
+            color: '#0f766e',
+            defaultPriority: 'MEDIUM',
+            sortOrder: 40,
+            keywords: ['password', 'reset', 'locked out', 'lockout', 'login', 'log in', 'mfa', 'two-factor', 'account', 'access', 'permission', 'shared drive', 'folder', 'sso'],
+            active: true,
+        },
+        {
+            name: 'Printing',
+            slug: 'printing',
+            description: 'Printers, queues, drivers, scanning and consumables.',
+            color: '#a16207',
+            defaultPriority: 'LOW',
+            sortOrder: 50,
+            keywords: ['printer', 'print', 'printing', 'scan', 'scanner', 'toner', 'paper jam', 'queue', 'driver', 'duplex'],
+            active: true,
+        },
+        {
+            name: 'Email & Communication',
+            slug: 'email',
+            description: 'Mailboxes, distribution lists, spam and calendar invitations.',
+            color: '#be185d',
+            defaultPriority: 'MEDIUM',
+            sortOrder: 60,
+            keywords: ['email', 'mailbox', 'inbox', 'spam', 'phishing', 'calendar', 'invite', 'distribution list', 'signature', 'attachment', 'quota'],
+            active: true,
+        },
+        {
+            name: 'General IT Inquiry',
+            slug: 'general',
+            description: 'General IT assistance and queries.',
+            color: '#64748b',
+            defaultPriority: 'LOW',
+            sortOrder: 70,
+            keywords: ['help', 'query', 'question', 'general', 'other'],
+            active: true,
+        },
+    ];
+    try {
+        await Category.insertMany(defaultCategories);
+    } catch {
+        // Safe to ignore duplicate or race condition
+    }
+}
 /**
  * `includeInactive` is what separates the admin's table from everyone else's picker.
  * The route decides which to ask for; a non-admin never gets the choice.
  */
 export async function list(options) {
-    const rows = await Category.find(options.includeInactive ? {} : { active: true }).sort({
+    let rows = await Category.find(options.includeInactive ? {} : { active: true }).sort({
         sortOrder: 1,
         name: 1,
     });
+    if (rows.length === 0) {
+        await ensureDefaultCategories();
+        rows = await Category.find(options.includeInactive ? {} : { active: true }).sort({
+            sortOrder: 1,
+            name: 1,
+        });
+    }
     return rows.map(toCategoryDto);
 }
 export async function create(input, actor) {
