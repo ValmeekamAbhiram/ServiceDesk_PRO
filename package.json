@@ -5,9 +5,11 @@
   "description": "ServiceDesk Pro — AI-Powered IT Helpdesk, SLA & Asset Intelligence Platform (MERN)",
   "author": "ServiceDesk Pro",
   "license": "MIT",
+  "type": "module",
   "workspaces": [
     "server",
-    "client"
+    "client",
+    "shared"
   ],
   "engines": {
     "node": ">=20.10.0"

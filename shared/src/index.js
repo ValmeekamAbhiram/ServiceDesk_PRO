@@ -9,8 +9,8 @@
  * `client/vite.config.ts`. Nothing in `shared/` may import from `server/` or
  * `client/` — it is the bottom of the dependency graph.
  */
-export * from './enums';
-export * from './types';
-export * from './labels';
-export * from './socket';
-export * from './utils';
+export * from './enums.js';
+export * from './types.js';
+export * from './labels.js';
+export * from './socket.js';
+export * from './utils.js';
