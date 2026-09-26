@@ -24,12 +24,24 @@
 
     "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"],
 
+    "allowJs": true,
+    "checkJs": false,
+
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/src/*"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "../shared/src/**/*.ts", "vite.config.ts"],
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../shared/src/**/*.js",
+    "../shared/src/**/*.ts",
+    "vite.config.js",
+    "vite.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
